@@ -1,0 +1,2 @@
+CREATE POLICY "Users can delete their own threads" ON public.purchase_threads FOR DELETE TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete messages in their own threads" ON public.purchase_messages FOR DELETE TO authenticated USING (EXISTS (SELECT 1 FROM public.purchase_threads t WHERE t.id = thread_id AND t.user_id = auth.uid()));
