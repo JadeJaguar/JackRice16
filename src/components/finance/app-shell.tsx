@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Heart, LayoutDashboard, LogOut, MessageCircle, ReceiptText, WalletCards } from "lucide-react";
+import { BarChart3, Heart, LayoutDashboard, LogOut, MessageCircle, ReceiptText, Sparkles, WalletCards } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -10,12 +10,13 @@ import { useEffect, useState, type ReactNode } from "react";
 
 const links = [
   { to: "/app", label: "Overview", icon: LayoutDashboard },
+  { to: "/decide", label: "Buy or Bye", icon: Sparkles },
   { to: "/budget", label: "Monthly budget", icon: WalletCards },
   { to: "/tracker", label: "Expenses Tracker", icon: ReceiptText },
   { to: "/purchase-pal", label: "Purchase Pal", icon: MessageCircle },
 ] as const;
 
-const FADE_ONLY_PATHS = ["/budget", "/tracker", "/purchase-pal"];
+const FADE_ONLY_PATHS = ["/budget", "/tracker", "/purchase-pal", "/decide"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
