@@ -33,7 +33,7 @@ app.use('/chat', rateLimit(15), chatRoutes);
 // classify is called from the signed-in Decide screen, so it checks the
 // Supabase token first, which also gives rateLimit a real user id to key on
 app.use('/classify', supabaseAuth, rateLimit(15), classifyRoutes);
-app.use('/budget', rateLimit(10), budgetRoutes);
+app.use('/budget', supabaseAuth, rateLimit(10), budgetRoutes);
 
 // Search calls SerpAPI, which has a very small free monthly pool,
 // so it gets both a per user limit and a shared limit for the whole app
