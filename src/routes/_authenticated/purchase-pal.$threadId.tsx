@@ -1,10 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
 import { Heart, ImagePlus, Menu, MessageCircle, PanelRight, Plus, Search, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useFinance } from "@/components/finance/use-finance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -25,14 +24,24 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Thread = Tables<"purchase_threads">;
 type Saved = Tables<"saved_items">;
+type MessagePart = { type: "text"; text: string } | { type: "file" | "image"; url: string; mediaType?: string; filename?: string };
+type ChatMessage = { id: string; role: "user" | "assistant"; parts: MessagePart[] };
+
+const API_URL = import.meta.env["VITE_API_URL"] || "http://localhost:3000";
+
+async function authedFetch(path: string, options: RequestInit = {}) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
 
 export const Route = createFileRoute("/_authenticated/purchase-pal/$threadId")({
   component: PurchasePal,
-  errorComponent: ({ error }) => (
-    <pre id="route-error" style={{ whiteSpace: "pre-wrap", padding: 16 }}>
-      {String(error)}{"\n"}{error instanceof Error ? error.stack : "no stack"}
-    </pre>
-  ),
   head: () => ({
     meta: [
       { title: "Purchase Pal — Buy or Bye" },
@@ -48,42 +57,20 @@ export const Route = createFileRoute("/_authenticated/purchase-pal/$threadId")({
 function PurchasePal() {
   const { threadId } = Route.useParams();
   const navigate = useNavigate();
+  const { budget, categories, transactions } = useFinance();
   const [threads, setThreads] = useState<Thread[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [saved, setSaved] = useState<Saved[]>([]);
   const [query, setQuery] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   const [mobileThreads, setMobileThreads] = useState(false);
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [mobileSaved, setMobileSaved] = useState(false);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
-
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: "/api/purchase-pal",
-        fetch: async (input, init) => {
-          const { data } = await supabase.auth.getSession();
-          const h = new Headers(init?.headers);
-          if (data.session) h.set("Authorization", `Bearer ${data.session.access_token}`);
-          return fetch(input, { ...init, headers: h });
-        },
-        body: { threadId },
-      }),
-    [threadId]
-  );
-
-  const loadRef = useRef<() => Promise<void>>(async () => {});
-
-  const { messages, sendMessage, status, stop, error, setMessages } = useChat({
-    id: threadId,
-    transport,
-    onFinish: () => void loadRef.current(),
-    onError: (err) => {
-      console.error("[purchase-pal] chat error", err);
-    },
-  });
 
   const load = async () => {
     const { data: userData } = await supabase.auth.getUser();
@@ -113,16 +100,14 @@ function PurchasePal() {
       (ms ?? []).map((m) => ({
         id: m.id,
         role: m.role as "user" | "assistant",
-        parts: (m.parts ?? []) as unknown as UIMessage["parts"],
+        parts: (m.parts ?? []) as unknown as MessagePart[],
       }))
     );
   };
 
-  loadRef.current = load;
-
   useEffect(() => {
     setLoaded(false);
-    setMessages([]);
+    setChatError(null);
     void load().then(() => setLoaded(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId]);
@@ -138,23 +123,104 @@ function PurchasePal() {
     if (data) void navigate({ to: "/purchase-pal/$threadId", params: { threadId: data.id } });
   };
 
-  const submit = async ({ text, files }: { text: string; files: any[] }) => {
+  const buildContext = (history: ChatMessage[]) => {
+    const spent = transactions.reduce((s, t) => s + Number(t.amount), 0);
+    const totalTarget = Number(budget?.target_amount ?? categories.reduce((s, c) => s + Number(c.target_amount), 0));
+    const remaining = Math.max(totalTarget - spent, 0);
+    const categoryLines = categories.map((c) => {
+      const used = transactions.filter((t) => t.category_id === c.id).reduce((s, t) => s + Number(t.amount), 0);
+      const target = Number(c.target_amount);
+      return `- ${c.name}: $${used.toFixed(0)} of $${target.toFixed(0)} spent ($${Math.max(target - used, 0).toFixed(0)} left)`;
+    });
+    const transcript = history
+      .slice(-12)
+      .map((m) => `${m.role === "user" ? "User" : "Pal"}: ${m.parts.filter((p): p is Extract<MessagePart, { type: "text" }> => p.type === "text").map((p) => p.text).join(" ")}`)
+      .filter((line) => !line.endsWith(": "))
+      .join("\n");
+
+    return [
+      "You are Purchase Pal, a calm, non-judgmental shopping consultant inside Buy or Bye. Help the user think through a possible purchase.",
+      "Use their monthly plan and recent spending to ground your advice. Be warm, concise, and encouraging. Never shame spending.",
+      "",
+      `Monthly plan: $${totalTarget.toFixed(0)}. Spent so far: $${spent.toFixed(0)}. Remaining: $${remaining.toFixed(0)}.`,
+      "Category budgets:",
+      ...categoryLines,
+      "",
+      "Always start by naming the item and the single best-matching category above (say 'closest match' if none fit well), then show that category's remaining budget.",
+      "When the user shares a photo, briefly say what you see: the product, brand if visible, and any price shown.",
+      "Then ask one or two useful follow-up questions with short advice on why they matter. Finish with a clear recommendation: buy now, wait, or save it to the heart list, with one sentence of reasoning. Keep replies under three short paragraphs.",
+      "",
+      "Conversation so far:",
+      transcript || "(nothing yet)",
+    ].join("\n");
+  };
+
+  const submit = async ({ text, files }: { text: string; files: { type: string; url: string; mediaType?: string; filename?: string }[] }) => {
     if (!text.trim() && !files.length && !photo) return;
-    let fileParts = files;
+    setChatError(null);
+    let userParts: MessagePart[] = text.trim() ? [{ type: "text", text: text.trim() }] : [];
+    let imageDataUrl: string | undefined;
+
     if (photo) {
-      const dataUrl = await new Promise<string>((res, rej) => {
+      imageDataUrl = await new Promise<string>((res, rej) => {
         const r = new FileReader();
         r.onload = () => res(String(r.result));
         r.onerror = rej;
         r.readAsDataURL(photo);
       });
-      fileParts = [
-        ...files,
-        { type: "file", mediaType: photo.type, url: dataUrl, filename: photo.name },
-      ];
+      userParts = [...userParts, { type: "file", mediaType: photo.type, url: imageDataUrl, filename: photo.name }];
+    } else if (files.length) {
+      userParts = [...userParts, ...(files as MessagePart[])];
+      imageDataUrl = files.find((f) => f.type === "file" && f.url.startsWith("data:image"))?.url;
     }
-    await sendMessage({ text, files: fileParts });
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return;
+
+    const isFirstMessage = messages.length === 0;
+    const { data: inserted } = await supabase
+      .from("purchase_messages")
+      .insert({ thread_id: threadId, user_id: userData.user.id, role: "user", parts: userParts as any })
+      .select()
+      .single();
+
+    const history = [...messages, ...(inserted ? [{ id: inserted.id, role: "user" as const, parts: userParts }] : [])];
+    setMessages(history);
     setPhoto(null);
+    setSending(true);
+
+    try {
+      const result = await authedFetch("/chat", {
+        method: "POST",
+        body: JSON.stringify({
+          message: buildContext(history),
+          imageDataUrl,
+        }),
+      });
+      const reply = String(result.reply ?? "").trim();
+      if (reply) {
+        await supabase.from("purchase_messages").insert({
+          thread_id: threadId,
+          user_id: userData.user.id,
+          role: "assistant",
+          parts: [{ type: "text", text: reply }] as any,
+        });
+      }
+      if (isFirstMessage) {
+        const thread = threads.find((t) => t.id === threadId);
+        if (!thread?.title || thread.title === "New purchase thought") {
+          const title = itemName(text.trim());
+          if (title) await supabase.from("purchase_threads").update({ title }).eq("id", threadId).eq("user_id", userData.user.id);
+        }
+      }
+      await load();
+    } catch (err) {
+      console.error("[purchase-pal] chat error", err);
+      const message = err instanceof Error ? err.message : String(err);
+      setChatError(/429|rate limit/i.test(message) ? "Your Pal needs a short pause. Please try again soon." : "I couldn't complete that thought. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const existingSaved = saved.find((s) => s.thread_id === threadId);
@@ -168,16 +234,16 @@ function PurchasePal() {
 
     const reversed = [...messages].reverse();
     const userMessage = reversed.find((m) => m.role === "user");
-    const userText = userMessage?.parts?.find((p: any) => p.type === "text") as any;
+    const userText = userMessage?.parts?.find((p): p is Extract<MessagePart, { type: "text" }> => p.type === "text");
     const assistantMessage = reversed.find((m) => m.role === "assistant");
-    const assistantText = assistantMessage?.parts?.find((p: any) => p.type === "text") as any;
+    const assistantText = assistantMessage?.parts?.find((p): p is Extract<MessagePart, { type: "text" }> => p.type === "text");
     if (!userText && !assistantText) return;
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
 
     const imagePart = reversed
-      .flatMap((m) => (m.parts ?? []) as any[])
-      .find((p: any) => (p.type === "file" || p.type === "image") && typeof p.url === "string" && p.url.startsWith("data:image"));
+      .flatMap((m) => m.parts)
+      .find((p): p is Extract<MessagePart, { type: "file" | "image" }> => (p.type === "file" || p.type === "image") && p.url.startsWith("data:image"));
 
     let photoPath: string | null = null;
     if (imagePart) {
@@ -198,7 +264,7 @@ function PurchasePal() {
     await supabase.from("saved_items").insert({
       user_id: u.user.id,
       thread_id: threadId,
-      name: itemName(String(userText?.text ?? ""), assistantText?.text ?? ""),
+      name: itemName(String(userText?.text ?? "")) || "Saved item",
       notes: recommendationSummary(assistantText?.text ?? userText?.text ?? ""),
       photo_path: photoPath,
     });
@@ -213,7 +279,6 @@ function PurchasePal() {
     }
     void load();
   };
-
 
   const remove = async (id: string) => {
     await supabase.from("purchase_messages").delete().eq("thread_id", id);
@@ -424,7 +489,7 @@ function PurchasePal() {
               messages.map((m) => (
                 <Message key={m.id} from={m.role}>
                   <MessageContent>
-                    {m.parts?.map((p: any, i: number) =>
+                    {m.parts?.map((p, i) =>
                       p.type === "text" ? (
                         <MessageResponse key={i}>{p.text}</MessageResponse>
                       ) : p.type === "file" || p.type === "image" ? (
@@ -434,26 +499,19 @@ function PurchasePal() {
                           alt="Purchase attachment"
                           className="w-full max-w-sm max-h-[28rem] rounded-2xl bg-white/40 object-contain"
                         />
-
                       ) : null
                     )}
                   </MessageContent>
                 </Message>
               ))
             )}
-            {(status === "submitted" || status === "streaming") && (
+            {sending && (
               <div className="flex items-center gap-2 px-4 text-sm text-muted-foreground">
                 <Shimmer>Checking your plan and recent spending…</Shimmer>
               </div>
             )}
-            {error && (
-              <p className="mx-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">
-                {error.message?.includes("429")
-                  ? "Your Pal needs a short pause. Please try again soon."
-                  : error.message?.trim()
-                    ? error.message
-                    : "I couldn't complete that thought. Please try again."}
-              </p>
+            {chatError && (
+              <p className="mx-4 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{chatError}</p>
             )}
           </ConversationContent>
           <ConversationScrollButton />
@@ -483,7 +541,7 @@ function PurchasePal() {
                   />
                 </label>
               </div>
-              <PromptInputSubmit status={status} onStop={stop} />
+              <PromptInputSubmit status={sending ? "submitted" : "ready"} />
             </PromptInputFooter>
           </PromptInput>
         </div>
@@ -559,28 +617,11 @@ function Typewriter({ text, speed = 45 }: { text: string; speed?: number }) {
   return <span>{displayed}</span>;
 }
 
-function shortDescription(text: string) {
-  const clean = text
-    .replace(/[*_#`>]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (!clean) return "Saved from Purchase Pal";
-  const sentences = clean.match(/[^.!?]+[.!?]?/g) ?? [clean];
-  const summary = sentences.slice(0, 2).join(" ").trim();
-  return summary.length > 180 ? `${summary.slice(0, 177)}…` : summary;
-}
-
-function itemName(userText: string, assistantText: string): string {
-  const cleanUser = userText
-    .replace(/[*_#`>]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (cleanUser) {
-    const firstClause = cleanUser.split(/[.!?\n]/)[0]?.trim() ?? cleanUser;
-    if (firstClause) return firstClause.length > 80 ? `${firstClause.slice(0, 77)}…` : firstClause;
-  }
-  const cleanAssistant = assistantText.replace(/[*_#`>]/g, " ").replace(/\s+/g, " ").trim();
-  return cleanAssistant ? cleanAssistant.slice(0, 80) : "Saved item";
+function itemName(userText: string): string {
+  const clean = userText.replace(/[*_#`>]/g, " ").replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  const firstClause = clean.split(/[.!?\n]/)[0]?.trim() ?? clean;
+  return firstClause.length > 80 ? `${firstClause.slice(0, 77)}…` : firstClause;
 }
 
 function recommendationSummary(text: string): string {
