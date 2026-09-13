@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedBudgetRouteImport } from './routes/_authenticated/budget'
+import { Route as AuthenticatedDecideRouteImport } from './routes/_authenticated/decide'
 import { Route as AuthenticatedTrackerRouteImport } from './routes/_authenticated/tracker'
 import { Route as ApiPurchasePalRouteImport } from './routes/api/purchase-pal'
 import { Route as ApiTrackerAssistantRouteImport } from './routes/api/tracker-assistant'
@@ -36,6 +37,11 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
 const AuthenticatedBudgetRoute = AuthenticatedBudgetRouteImport.update({
   id: '/budget',
   path: '/budget',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDecideRoute = AuthenticatedDecideRouteImport.update({
+  id: '/decide',
+  path: '/decide',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTrackerRoute = AuthenticatedTrackerRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AuthenticatedAppRoute
   '/budget': typeof AuthenticatedBudgetRoute
+  '/decide': typeof AuthenticatedDecideRoute
   '/tracker': typeof AuthenticatedTrackerRoute
   '/api/purchase-pal': typeof ApiPurchasePalRoute
   '/api/tracker-assistant': typeof ApiTrackerAssistantRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AuthenticatedAppRoute
   '/budget': typeof AuthenticatedBudgetRoute
+  '/decide': typeof AuthenticatedDecideRoute
   '/tracker': typeof AuthenticatedTrackerRoute
   '/api/purchase-pal': typeof ApiPurchasePalRoute
   '/api/tracker-assistant': typeof ApiTrackerAssistantRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/budget': typeof AuthenticatedBudgetRoute
+  '/_authenticated/decide': typeof AuthenticatedDecideRoute
   '/_authenticated/tracker': typeof AuthenticatedTrackerRoute
   '/api/purchase-pal': typeof ApiPurchasePalRoute
   '/api/tracker-assistant': typeof ApiTrackerAssistantRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/budget'
+    | '/decide'
     | '/tracker'
     | '/api/purchase-pal'
     | '/api/tracker-assistant'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/budget'
+    | '/decide'
     | '/tracker'
     | '/api/purchase-pal'
     | '/api/tracker-assistant'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/app'
     | '/_authenticated/budget'
+    | '/_authenticated/decide'
     | '/_authenticated/tracker'
     | '/api/purchase-pal'
     | '/api/tracker-assistant'
@@ -169,6 +181,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBudgetRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/decide': {
+      id: '/_authenticated/decide'
+      path: '/decide'
+      fullPath: '/decide'
+      preLoaderRoute: typeof AuthenticatedDecideRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tracker': {
       id: '/_authenticated/tracker'
       path: '/tracker'
@@ -210,6 +229,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedBudgetRoute: typeof AuthenticatedBudgetRoute
+  AuthenticatedDecideRoute: typeof AuthenticatedDecideRoute
   AuthenticatedTrackerRoute: typeof AuthenticatedTrackerRoute
   AuthenticatedPurchasePalThreadIdRoute: typeof AuthenticatedPurchasePalThreadIdRoute
   AuthenticatedPurchasePalIndexRoute: typeof AuthenticatedPurchasePalIndexRoute
@@ -218,6 +238,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedBudgetRoute: AuthenticatedBudgetRoute,
+  AuthenticatedDecideRoute: AuthenticatedDecideRoute,
   AuthenticatedTrackerRoute: AuthenticatedTrackerRoute,
   AuthenticatedPurchasePalThreadIdRoute: AuthenticatedPurchasePalThreadIdRoute,
   AuthenticatedPurchasePalIndexRoute: AuthenticatedPurchasePalIndexRoute,

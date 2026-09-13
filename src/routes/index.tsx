@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Check, HeartHandshake, Leaf, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PointerBackground } from "@/components/finance/pointer-background";
-import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "motion/react";
 
@@ -36,8 +35,11 @@ function Index() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   const signIn = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/app` });
-    if (!result.redirected && !result.error) void navigate({ to: "/app" });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/app` },
+    });
+    if (error) console.error(error);
   };
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-background">
