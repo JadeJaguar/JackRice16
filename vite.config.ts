@@ -12,6 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // The Lovable config defaults to a Cloudflare Workers build (cloudflare-module),
+  // since that's how Lovable itself hosts this app. We deploy to a plain Node VPS
+  // instead, so build a standard self-hosted Node server.
+  nitro: {
+    preset: "node-server",
+  },
   vite: {
     optimizeDeps: {
       include: ["ai", "@ai-sdk/react", "streamdown", "framer-motion", "use-stick-to-bottom"],
