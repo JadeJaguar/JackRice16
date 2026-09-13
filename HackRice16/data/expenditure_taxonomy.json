@@ -1,0 +1,293 @@
+{
+  "version": "1.1",
+  "name": "Expenditure Taxonomy",
+  "description": "Classification system for personal expenditures based on what was purchased or paid for. Each subcategory has a demo flag. demo true means it is part of the small core set used for the live demo. demo false means it is part of the full set, but not tested for the demo.",
+
+  "categories": [
+    {
+      "id": "housing",
+      "name": "Housing",
+      "subcategories": [
+        { "id": "rent", "name": "Rent", "demo": false, "examples": ["Apartment rent", "House rent", "Room rent"], "keywords": ["rent", "lease"] },
+        { "id": "mortgage", "name": "Mortgage", "demo": false, "examples": ["Mortgage payment", "Home loan payment"], "keywords": ["mortgage", "home loan"] },
+        { "id": "property_taxes", "name": "Property Taxes", "demo": false, "examples": ["Property tax", "Real estate tax"], "keywords": ["property tax", "real estate tax"] },
+        { "id": "home_maintenance_repairs", "name": "Home Maintenance & Repairs", "demo": false, "examples": ["Plumber", "Electrician", "AC repair", "Roof repair"], "keywords": ["repair", "maintenance", "plumber", "electrician"] },
+        { "id": "home_improvement", "name": "Home Improvement", "demo": false, "examples": ["Renovation", "Painting", "New flooring"], "keywords": ["renovation", "remodel", "flooring", "painting"] },
+        { "id": "hoa", "name": "HOA & Community Fees", "demo": false, "examples": ["HOA dues", "Community association fee"], "keywords": ["HOA", "community fee", "association fee"] }
+      ]
+    },
+
+    {
+      "id": "utilities_communications",
+      "name": "Utilities & Communications",
+      "subcategories": [
+        { "id": "electricity", "name": "Electricity", "demo": false, "examples": ["Electric bill", "Power bill"], "keywords": ["electricity", "electric bill", "power bill"] },
+        { "id": "water_sewer", "name": "Water & Sewer", "demo": false, "examples": ["Water bill", "Sewer bill"], "keywords": ["water bill", "sewer"] },
+        { "id": "gas", "name": "Gas", "demo": false, "examples": ["Natural gas bill"], "keywords": ["gas bill", "natural gas"] },
+        { "id": "trash_recycling", "name": "Trash & Recycling", "demo": false, "examples": ["Garbage collection", "Recycling service"], "keywords": ["trash", "garbage", "recycling"] },
+        { "id": "internet", "name": "Internet", "demo": false, "examples": ["Home internet", "Broadband"], "keywords": ["internet", "wifi", "broadband"] },
+        { "id": "mobile_phone", "name": "Mobile Phone", "demo": false, "examples": ["Phone bill", "Mobile plan"], "keywords": ["phone bill", "mobile", "cell phone"] },
+        { "id": "cable_tv", "name": "Cable & TV Service", "demo": false, "examples": ["Cable", "TV service"], "keywords": ["cable", "television service", "TV service"] }
+      ]
+    },
+
+    {
+      "id": "food",
+      "name": "Food",
+      "subcategories": [
+        { "id": "groceries", "name": "Groceries", "demo": true, "examples": ["Milk", "Bread", "Vegetables", "Meat", "Groceries"], "keywords": ["grocery", "groceries", "food shopping"] },
+        { "id": "restaurants_dining", "name": "Restaurants & Dining", "demo": true, "examples": ["Dinner", "Lunch", "Restaurant meal"], "keywords": ["restaurant", "dinner", "lunch", "meal"] },
+        { "id": "coffee_drinks", "name": "Coffee & Drinks", "demo": true, "examples": ["Coffee", "Tea", "Smoothie"], "keywords": ["coffee", "tea", "smoothie"] },
+        { "id": "food_delivery", "name": "Food Delivery", "demo": false, "examples": ["Delivered meal", "Food delivery"], "keywords": ["food delivery", "delivery meal"] },
+        { "id": "alcohol_drinks", "name": "Alcohol & Drinks", "demo": false, "examples": ["Wine", "Beer", "Cocktails"], "keywords": ["wine", "beer", "cocktail", "alcohol"] }
+      ]
+    },
+
+    {
+      "id": "transportation",
+      "name": "Transportation",
+      "subcategories": [
+        { "id": "rideshare_taxi", "name": "Rideshare & Taxi", "demo": false, "examples": ["Uber ride", "Taxi ride", "Lyft ride"], "keywords": ["rideshare", "taxi", "ride"] },
+        { "id": "public_transportation", "name": "Public Transportation", "demo": false, "examples": ["Bus", "Train", "Subway", "Metro"], "keywords": ["bus", "train", "subway", "metro", "transit"] },
+        { "id": "parking", "name": "Parking", "demo": false, "examples": ["Parking garage", "Parking meter"], "keywords": ["parking", "parking garage"] },
+        { "id": "tolls", "name": "Tolls", "demo": false, "examples": ["Highway toll", "Bridge toll"], "keywords": ["toll", "turnpike"] }
+      ]
+    },
+
+    {
+      "id": "vehicle",
+      "name": "Vehicle",
+      "subcategories": [
+        { "id": "car_payment", "name": "Car Payment", "demo": false, "examples": ["Car loan payment", "Vehicle payment"], "keywords": ["car payment", "auto loan", "vehicle payment"] },
+        { "id": "fuel", "name": "Fuel", "demo": false, "examples": ["Gasoline", "Diesel", "EV charging"], "keywords": ["gas", "gasoline", "fuel", "diesel", "EV charging"] },
+        { "id": "vehicle_maintenance", "name": "Vehicle Maintenance", "demo": false, "examples": ["Oil change", "Tire replacement", "Brake repair"], "keywords": ["oil change", "tires", "brakes", "car repair"] },
+        { "id": "registration_licensing", "name": "Registration & Licensing", "demo": false, "examples": ["Vehicle registration", "License renewal"], "keywords": ["registration", "vehicle license", "license renewal"] }
+      ]
+    },
+
+    {
+      "id": "healthcare",
+      "name": "Healthcare",
+      "subcategories": [
+        { "id": "medical_care", "name": "Doctor & Medical Care", "demo": false, "examples": ["Doctor visit", "Urgent care", "Hospital visit"], "keywords": ["doctor", "hospital", "medical", "urgent care"] },
+        { "id": "dental", "name": "Dental", "demo": false, "examples": ["Dentist", "Dental cleaning", "Dental procedure"], "keywords": ["dentist", "dental", "teeth"] },
+        { "id": "vision", "name": "Vision", "demo": false, "examples": ["Eye exam", "Glasses prescription"], "keywords": ["eye exam", "vision", "optometrist"] },
+        { "id": "prescriptions_pharmacy", "name": "Prescriptions & Pharmacy", "demo": false, "examples": ["Prescription", "Pharmacy purchase"], "keywords": ["prescription", "pharmacy", "medication"] },
+        { "id": "medical_supplies", "name": "Medical Supplies", "demo": false, "examples": ["Bandages", "Medical equipment"], "keywords": ["medical supplies", "medical equipment"] }
+      ]
+    },
+
+    {
+      "id": "insurance",
+      "name": "Insurance",
+      "subcategories": [
+        { "id": "health_insurance", "name": "Health Insurance", "demo": false, "examples": ["Health insurance premium"], "keywords": ["health insurance", "medical insurance"] },
+        { "id": "auto_insurance", "name": "Auto Insurance", "demo": false, "examples": ["Car insurance premium"], "keywords": ["car insurance", "auto insurance"] },
+        { "id": "home_renters_insurance", "name": "Home & Renters Insurance", "demo": false, "examples": ["Home insurance", "Renters insurance"], "keywords": ["home insurance", "renters insurance"] },
+        { "id": "life_insurance", "name": "Life Insurance", "demo": false, "examples": ["Life insurance premium"], "keywords": ["life insurance"] },
+        { "id": "other_insurance", "name": "Other Insurance", "demo": false, "examples": ["Travel insurance", "Pet insurance"], "keywords": ["insurance"] }
+      ]
+    },
+
+    {
+      "id": "childcare_kids",
+      "name": "Childcare & Kids",
+      "subcategories": [
+        { "id": "daycare_childcare", "name": "Daycare & Childcare", "demo": false, "examples": ["Daycare", "Babysitter", "Nanny"], "keywords": ["daycare", "babysitter", "nanny", "childcare"] },
+        { "id": "baby_supplies", "name": "Baby Supplies", "demo": false, "examples": ["Diapers", "Baby formula", "Baby bottles"], "keywords": ["diapers", "baby formula", "baby supplies"] },
+        { "id": "children_clothing", "name": "Children's Clothing", "demo": false, "examples": ["Kids shoes", "Children's clothes"], "keywords": ["kids clothing", "children clothes", "kids shoes"] },
+        { "id": "kids_activities", "name": "Kids Activities", "demo": false, "examples": ["Toys", "Sports activities", "Play activities"], "keywords": ["toys", "kids activities", "children activities"] },
+        { "id": "kids_healthcare", "name": "Kids Healthcare", "demo": false, "examples": ["Pediatrician", "Child prescription"], "keywords": ["pediatrician", "child healthcare"] },
+        { "id": "school_education", "name": "School & Education", "demo": false, "examples": ["School supplies", "School fees", "Tuition"], "keywords": ["school", "school supplies", "tuition"] }
+      ]
+    },
+
+    {
+      "id": "personal_care",
+      "name": "Personal Care",
+      "subcategories": [
+        { "id": "haircare", "name": "Haircare", "demo": false, "examples": ["Haircut", "Hair products", "Salon"], "keywords": ["haircut", "hair", "salon"] },
+        { "id": "skincare", "name": "Skincare", "demo": false, "examples": ["Moisturizer", "Cleanser", "Sunscreen"], "keywords": ["skincare", "moisturizer", "cleanser"] },
+        { "id": "cosmetics_makeup", "name": "Cosmetics & Makeup", "demo": false, "examples": ["Foundation", "Mascara", "Makeup"], "keywords": ["makeup", "cosmetics", "mascara"] },
+        { "id": "personal_hygiene", "name": "Personal Hygiene", "demo": false, "examples": ["Shampoo", "Toothpaste", "Deodorant"], "keywords": ["hygiene", "toothpaste", "deodorant", "shampoo"] },
+        { "id": "nails_beauty", "name": "Nails & Beauty Services", "demo": false, "examples": ["Manicure", "Pedicure", "Beauty treatment"], "keywords": ["manicure", "pedicure", "beauty treatment"] }
+      ]
+    },
+
+    {
+      "id": "clothing_accessories",
+      "name": "Clothing & Accessories",
+      "subcategories": [
+        { "id": "clothing", "name": "Clothing", "demo": true, "examples": ["Shirt", "Pants", "Dress", "Jacket"], "keywords": ["clothing", "shirt", "pants", "dress", "jacket"] },
+        { "id": "shoes", "name": "Shoes", "demo": true, "examples": ["Sneakers", "Boots", "Sandals"], "keywords": ["shoes", "sneakers", "boots", "sandals"] },
+        { "id": "bags_luggage", "name": "Bags & Luggage", "demo": false, "examples": ["Backpack", "Suitcase", "Handbag"], "keywords": ["bag", "backpack", "luggage", "suitcase"] },
+        { "id": "jewelry_accessories", "name": "Jewelry & Accessories", "demo": false, "examples": ["Watch", "Necklace", "Sunglasses"], "keywords": ["jewelry", "watch", "necklace", "sunglasses"] }
+      ]
+    },
+
+    {
+      "id": "household_home_goods",
+      "name": "Household & Home Goods",
+      "subcategories": [
+        { "id": "household_supplies", "name": "Household Supplies", "demo": false, "examples": ["Cleaning supplies", "Paper towels", "Laundry detergent"], "keywords": ["cleaning supplies", "paper towels", "laundry"] },
+        {
+          "id": "kitchenware_drinkware",
+          "name": "Kitchenware & Drinkware",
+          "demo": true,
+          "examples": ["Stanley", "Yeti", "Hydro Flask", "Water bottle", "Tumbler", "Travel mug", "Coffee mug", "Glasses", "Plates", "Bowls", "Utensils", "Cookware", "Pots", "Pans", "Food containers", "Thermos", "Kitchen gadgets"],
+          "keywords": ["water bottle", "tumbler", "travel mug", "coffee mug", "thermos", "cookware", "pots", "pans", "plates", "bowls", "utensils", "kitchenware"]
+        },
+        { "id": "furniture", "name": "Furniture", "demo": false, "examples": ["Sofa", "Bed", "Desk", "Chair"], "keywords": ["furniture", "sofa", "bed", "desk", "chair"] },
+        { "id": "home_decor", "name": "Home Decor", "demo": true, "examples": ["Decorations", "Wall art", "Rugs", "Curtains"], "keywords": ["home decor", "decorations", "wall art", "rug"] },
+        { "id": "garden_outdoor", "name": "Garden & Outdoor Home", "demo": false, "examples": ["Plants", "Garden tools", "Outdoor furniture"], "keywords": ["garden", "plants", "outdoor furniture"] }
+      ]
+    },
+
+    {
+      "id": "entertainment_recreation",
+      "name": "Entertainment & Recreation",
+      "subcategories": [
+        {
+          "id": "streaming_entertainment_subscriptions",
+          "name": "Streaming & Entertainment Subscriptions",
+          "demo": true,
+          "examples": ["Netflix", "Disney+", "Spotify", "YouTube Premium"],
+          "keywords": ["streaming", "Netflix", "Spotify", "Disney+", "subscription"]
+        },
+        { "id": "movies_theater", "name": "Movies & Theater", "demo": false, "examples": ["Movie ticket", "Theater ticket", "Concert ticket"], "keywords": ["movie", "cinema", "theater", "concert"] },
+        { "id": "games", "name": "Games", "demo": false, "examples": ["Video game", "Game purchase", "In-game purchase"], "keywords": ["game", "video game", "gaming"] },
+        { "id": "hobbies", "name": "Hobbies", "demo": false, "examples": ["Craft supplies", "Art supplies", "Photography hobby"], "keywords": ["hobby", "craft", "art supplies"] },
+        { "id": "recreation", "name": "Recreation", "demo": false, "examples": ["Amusement park", "Bowling", "Recreational activity"], "keywords": ["recreation", "amusement park", "bowling"] }
+      ]
+    },
+
+    {
+      "id": "fitness_wellness",
+      "name": "Fitness & Wellness",
+      "subcategories": [
+        { "id": "gym_fitness_memberships", "name": "Gym & Fitness Memberships", "demo": true, "examples": ["Gym membership", "Fitness club"], "keywords": ["gym", "fitness membership", "fitness club"] },
+        { "id": "fitness_classes", "name": "Fitness Classes", "demo": false, "examples": ["Yoga", "Pilates", "Spin class"], "keywords": ["yoga", "pilates", "fitness class"] },
+        { "id": "sports", "name": "Sports", "demo": false, "examples": ["Sports equipment", "League fees", "Sports activity"], "keywords": ["sports", "sports equipment", "league"] },
+        { "id": "wellness_spa", "name": "Wellness & Spa", "demo": false, "examples": ["Massage", "Spa treatment"], "keywords": ["massage", "spa", "wellness"] }
+      ]
+    },
+
+    {
+      "id": "education_learning",
+      "name": "Education & Learning",
+      "subcategories": [
+        { "id": "tuition_courses", "name": "Tuition & Courses", "demo": false, "examples": ["College tuition", "Online course", "Training course"], "keywords": ["tuition", "course", "training", "class"] },
+        { "id": "books_learning_materials", "name": "Books & Learning Materials", "demo": false, "examples": ["Textbook", "Educational book", "Study materials"], "keywords": ["textbook", "book", "study materials"] },
+        { "id": "professional_development", "name": "Professional Development", "demo": false, "examples": ["Certification", "Professional course", "Conference"], "keywords": ["certification", "professional development", "conference"] }
+      ]
+    },
+
+    {
+      "id": "technology_electronics",
+      "name": "Technology & Electronics",
+      "subcategories": [
+        { "id": "computers_tablets", "name": "Computers & Tablets", "demo": false, "examples": ["Laptop", "Desktop computer", "iPad", "Tablet"], "keywords": ["laptop", "computer", "tablet", "iPad"] },
+        { "id": "phones_accessories", "name": "Phones & Accessories", "demo": false, "examples": ["Phone", "Phone case", "Charger"], "keywords": ["phone", "phone case", "charger"] },
+        { "id": "electronics", "name": "Electronics", "demo": true, "examples": ["Headphones", "TV", "Camera", "Smartwatch"], "keywords": ["electronics", "headphones", "TV", "camera", "smartwatch"] },
+        {
+          "id": "software_digital_subscriptions",
+          "name": "Software & Digital Subscriptions",
+          "demo": true,
+          "examples": ["Microsoft 365", "Adobe", "Cloud storage", "Software subscription"],
+          "keywords": ["software", "SaaS", "cloud storage", "digital subscription"]
+        }
+      ]
+    },
+
+    {
+      "id": "travel",
+      "name": "Travel",
+      "subcategories": [
+        { "id": "flights", "name": "Flights", "demo": false, "examples": ["Airline ticket", "Flight"], "keywords": ["flight", "airline", "airfare"] },
+        { "id": "hotels_lodging", "name": "Hotels & Lodging", "demo": false, "examples": ["Hotel", "Vacation rental", "Motel"], "keywords": ["hotel", "lodging", "vacation rental"] },
+        { "id": "travel_transportation", "name": "Travel Transportation", "demo": false, "examples": ["Rental car", "Train ticket", "Airport transfer"], "keywords": ["rental car", "travel transportation", "airport transfer"] },
+        { "id": "travel_food", "name": "Travel Food", "demo": false, "examples": ["Travel meal", "Airport food"], "keywords": ["travel meal", "airport food"] },
+        { "id": "travel_activities", "name": "Travel Activities", "demo": false, "examples": ["Tour", "Excursion", "Attraction ticket"], "keywords": ["tour", "excursion", "attraction"] }
+      ]
+    },
+
+    {
+      "id": "pets",
+      "name": "Pets",
+      "subcategories": [
+        { "id": "pet_food", "name": "Pet Food", "demo": false, "examples": ["Dog food", "Cat food", "Pet treats"], "keywords": ["dog food", "cat food", "pet food", "pet treats"] },
+        { "id": "pet_healthcare", "name": "Pet Healthcare", "demo": false, "examples": ["Vet visit", "Pet medication"], "keywords": ["vet", "veterinarian", "pet medication"] },
+        { "id": "pet_supplies", "name": "Pet Supplies", "demo": false, "examples": ["Leash", "Pet bed", "Pet toys"], "keywords": ["pet supplies", "leash", "pet bed", "pet toys"] },
+        { "id": "pet_services", "name": "Pet Services", "demo": false, "examples": ["Grooming", "Pet sitting", "Boarding"], "keywords": ["pet grooming", "pet sitting", "pet boarding"] }
+      ]
+    },
+
+    {
+      "id": "gifts_donations",
+      "name": "Gifts & Donations",
+      "subcategories": [
+        { "id": "gifts", "name": "Gifts", "demo": false, "examples": ["Birthday gift", "Wedding gift", "Gift purchase"], "keywords": ["gift", "present"] },
+        { "id": "donations_charity", "name": "Donations & Charity", "demo": false, "examples": ["Charity donation", "Nonprofit donation"], "keywords": ["donation", "charity", "nonprofit"] },
+        { "id": "celebrations", "name": "Celebrations", "demo": false, "examples": ["Birthday celebration", "Party supplies"], "keywords": ["birthday", "party", "celebration"] }
+      ]
+    },
+
+    {
+      "id": "debt_payments",
+      "name": "Debt Payments",
+      "subcategories": [
+        { "id": "credit_card_payments", "name": "Credit Card Payments", "demo": false, "examples": ["Credit card payment"], "keywords": ["credit card payment"] },
+        { "id": "student_loans", "name": "Student Loans", "demo": false, "examples": ["Student loan payment"], "keywords": ["student loan"] },
+        { "id": "personal_loans", "name": "Personal Loans", "demo": false, "examples": ["Personal loan payment"], "keywords": ["personal loan"] },
+        { "id": "other_debt", "name": "Other Debt", "demo": false, "examples": ["Debt repayment"], "keywords": ["debt payment", "debt repayment"] }
+      ]
+    },
+
+    {
+      "id": "financial_fees",
+      "name": "Financial Fees",
+      "subcategories": [
+        { "id": "bank_fees", "name": "Bank Fees", "demo": false, "examples": ["Monthly bank fee", "ATM fee", "Overdraft fee"], "keywords": ["bank fee", "ATM fee", "overdraft"] },
+        { "id": "transaction_fees", "name": "Transaction Fees", "demo": false, "examples": ["Processing fee", "Transaction fee"], "keywords": ["transaction fee", "processing fee"] }
+      ]
+    },
+
+    {
+      "id": "taxes",
+      "name": "Taxes",
+      "subcategories": [
+        { "id": "income_tax", "name": "Income Tax", "demo": false, "examples": ["Income tax payment", "Estimated tax payment"], "keywords": ["income tax", "estimated tax"] },
+        { "id": "other_taxes", "name": "Other Taxes", "demo": false, "examples": ["Sales tax", "Local tax", "Tax payment"], "keywords": ["sales tax", "local tax", "tax"] }
+      ]
+    },
+
+    {
+      "id": "work_business",
+      "name": "Work & Business",
+      "subcategories": [
+        { "id": "work_equipment", "name": "Work Equipment", "demo": false, "examples": ["Work laptop", "Monitor", "Office chair"], "keywords": ["work equipment", "office equipment"] },
+        { "id": "office_supplies", "name": "Office Supplies", "demo": false, "examples": ["Printer paper", "Pens", "Notebooks"], "keywords": ["office supplies", "stationery"] },
+        { "id": "professional_services", "name": "Professional Services", "demo": false, "examples": ["Accounting", "Legal services", "Consulting"], "keywords": ["accounting", "legal", "consulting"] },
+        { "id": "work_travel", "name": "Work Travel", "demo": false, "examples": ["Business flight", "Business hotel", "Business meal"], "keywords": ["business travel", "work travel"] }
+      ]
+    },
+
+    {
+      "id": "miscellaneous",
+      "name": "Miscellaneous",
+      "subcategories": [
+        { "id": "general_purchases", "name": "General Purchases", "demo": true, "examples": ["General purchase", "Item that does not clearly fit another category"], "keywords": [] },
+        { "id": "uncategorized", "name": "Uncategorized", "demo": false, "examples": ["Unknown expenditure", "Insufficient description"], "keywords": [] }
+      ]
+    }
+  ],
+
+  "expenditure_types": [
+    { "id": "one_time", "name": "One-time", "demo": true, "description": "An expenditure that occurs once or irregularly." },
+    { "id": "recurring", "name": "Recurring", "demo": false, "description": "An expenditure that repeats on a regular basis." },
+    { "id": "bill", "name": "Bill", "demo": false, "description": "A payment for an ongoing service or obligation." },
+    { "id": "subscription", "name": "Subscription", "demo": true, "description": "A recurring payment for access to a service or content." },
+    { "id": "membership", "name": "Membership", "demo": true, "description": "A recurring payment for membership or ongoing access." },
+    { "id": "installment", "name": "Installment", "demo": false, "description": "A scheduled payment toward a larger purchase or obligation." }
+  ]
+}

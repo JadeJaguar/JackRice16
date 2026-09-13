@@ -30,3 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets - never commit real env files, only the example
+.env
+.env.*
+!.env.example
+
+# Python venvs (unrelated leftovers, not part of the Node projects)
+.venv/
