@@ -8,10 +8,11 @@ const userThreads = {};
 
 router.post('/', async (req, res) => {
   try {
-    const { message, userId } = req.body;
+    const { message, imageDataUrl } = req.body;
+    const userId = req.userId || 'anonymous';
 
-    if (!userId || !message) {
-      return res.status(400).json({ error: 'userId and message are required' });
+    if (!message) {
+      return res.status(400).json({ error: 'message is required' });
     }
 
     const existingThreadId = userThreads[userId];
@@ -19,6 +20,7 @@ router.post('/', async (req, res) => {
     const result = await getAIReply(message, {
       userId,
       threadId: existingThreadId,
+      imageDataUrl,
     });
 
     if (result.threadId) {

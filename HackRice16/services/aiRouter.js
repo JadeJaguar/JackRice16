@@ -1,9 +1,9 @@
 const { askGemini } = require('./gemini');
 const { sendMessage } = require('./backboard');
 
-async function getAIReply(promptText, { userId, threadId } = {}) {
+async function getAIReply(promptText, { userId, threadId, imageDataUrl } = {}) {
   try {
-    const result = await askGemini(promptText);
+    const result = await askGemini(promptText, imageDataUrl);
     return { reply: result, source: 'gemini', threadId };
   } catch (err) {
     const isTimeout = err.code === 'ECONNABORTED';
@@ -15,10 +15,16 @@ async function getAIReply(promptText, { userId, threadId } = {}) {
     if (isTimeout || isGeminiHttpError) {
       console.log('Gemini failed, falling back to Backboard:', err.message);
 
+      // Backboard has no image support here, so make sure the fallback
+      // reply doesn't silently ignore a photo the user thinks was seen.
+      const content = imageDataUrl
+        ? `${promptText}\n\n(The user also shared a photo, which is not visible in this fallback mode. Ask them to describe it in words if it matters.)`
+        : promptText;
+
       const result = await sendMessage({
         threadId,
         assistantId: process.env.BACKBOARD_ASSISTANT_ID,
-        content: promptText,
+        content,
       });
 
       return {

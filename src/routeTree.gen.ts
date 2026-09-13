@@ -15,8 +15,6 @@ import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/ap
 import { Route as AuthenticatedBudgetRouteImport } from './routes/_authenticated/budget'
 import { Route as AuthenticatedDecideRouteImport } from './routes/_authenticated/decide'
 import { Route as AuthenticatedTrackerRouteImport } from './routes/_authenticated/tracker'
-import { Route as ApiPurchasePalRouteImport } from './routes/api/purchase-pal'
-import { Route as ApiTrackerAssistantRouteImport } from './routes/api/tracker-assistant'
 import { Route as AuthenticatedPurchasePalIndexRouteImport } from './routes/_authenticated/purchase-pal.index'
 import { Route as AuthenticatedPurchasePalThreadIdRouteImport } from './routes/_authenticated/purchase-pal.$threadId'
 
@@ -49,16 +47,6 @@ const AuthenticatedTrackerRoute = AuthenticatedTrackerRouteImport.update({
   path: '/tracker',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPurchasePalRoute = ApiPurchasePalRouteImport.update({
-  id: '/api/purchase-pal',
-  path: '/api/purchase-pal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTrackerAssistantRoute = ApiTrackerAssistantRouteImport.update({
-  id: '/api/tracker-assistant',
-  path: '/api/tracker-assistant',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedPurchasePalIndexRoute =
   AuthenticatedPurchasePalIndexRouteImport.update({
     id: '/purchase-pal/',
@@ -78,8 +66,6 @@ export interface FileRoutesByFullPath {
   '/budget': typeof AuthenticatedBudgetRoute
   '/decide': typeof AuthenticatedDecideRoute
   '/tracker': typeof AuthenticatedTrackerRoute
-  '/api/purchase-pal': typeof ApiPurchasePalRoute
-  '/api/tracker-assistant': typeof ApiTrackerAssistantRoute
   '/purchase-pal/$threadId': typeof AuthenticatedPurchasePalThreadIdRoute
   '/purchase-pal/': typeof AuthenticatedPurchasePalIndexRoute
 }
@@ -89,8 +75,6 @@ export interface FileRoutesByTo {
   '/budget': typeof AuthenticatedBudgetRoute
   '/decide': typeof AuthenticatedDecideRoute
   '/tracker': typeof AuthenticatedTrackerRoute
-  '/api/purchase-pal': typeof ApiPurchasePalRoute
-  '/api/tracker-assistant': typeof ApiTrackerAssistantRoute
   '/purchase-pal/$threadId': typeof AuthenticatedPurchasePalThreadIdRoute
   '/purchase-pal': typeof AuthenticatedPurchasePalIndexRoute
 }
@@ -102,8 +86,6 @@ export interface FileRoutesById {
   '/_authenticated/budget': typeof AuthenticatedBudgetRoute
   '/_authenticated/decide': typeof AuthenticatedDecideRoute
   '/_authenticated/tracker': typeof AuthenticatedTrackerRoute
-  '/api/purchase-pal': typeof ApiPurchasePalRoute
-  '/api/tracker-assistant': typeof ApiTrackerAssistantRoute
   '/_authenticated/purchase-pal/$threadId': typeof AuthenticatedPurchasePalThreadIdRoute
   '/_authenticated/purchase-pal/': typeof AuthenticatedPurchasePalIndexRoute
 }
@@ -115,8 +97,6 @@ export interface FileRouteTypes {
     | '/budget'
     | '/decide'
     | '/tracker'
-    | '/api/purchase-pal'
-    | '/api/tracker-assistant'
     | '/purchase-pal/$threadId'
     | '/purchase-pal/'
   fileRoutesByTo: FileRoutesByTo
@@ -126,8 +106,6 @@ export interface FileRouteTypes {
     | '/budget'
     | '/decide'
     | '/tracker'
-    | '/api/purchase-pal'
-    | '/api/tracker-assistant'
     | '/purchase-pal/$threadId'
     | '/purchase-pal'
   id:
@@ -138,8 +116,6 @@ export interface FileRouteTypes {
     | '/_authenticated/budget'
     | '/_authenticated/decide'
     | '/_authenticated/tracker'
-    | '/api/purchase-pal'
-    | '/api/tracker-assistant'
     | '/_authenticated/purchase-pal/$threadId'
     | '/_authenticated/purchase-pal/'
   fileRoutesById: FileRoutesById
@@ -147,8 +123,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  ApiPurchasePalRoute: typeof ApiPurchasePalRoute
-  ApiTrackerAssistantRoute: typeof ApiTrackerAssistantRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -195,20 +169,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTrackerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/purchase-pal': {
-      id: '/api/purchase-pal'
-      path: '/api/purchase-pal'
-      fullPath: '/api/purchase-pal'
-      preLoaderRoute: typeof ApiPurchasePalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/tracker-assistant': {
-      id: '/api/tracker-assistant'
-      path: '/api/tracker-assistant'
-      fullPath: '/api/tracker-assistant'
-      preLoaderRoute: typeof ApiTrackerAssistantRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/purchase-pal/': {
       id: '/_authenticated/purchase-pal/'
       path: '/purchase-pal'
@@ -250,8 +210,6 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  ApiPurchasePalRoute: ApiPurchasePalRoute,
-  ApiTrackerAssistantRoute: ApiTrackerAssistantRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

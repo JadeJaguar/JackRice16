@@ -1,8 +1,6 @@
-import { useChat } from "@ai-sdk/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { DefaultChatTransport, getToolName, isToolUIPart, type UIMessage } from "ai";
 import { Bot, Check, Pencil, Plus, Sparkles, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Conversation,
   ConversationContent,
@@ -16,13 +14,7 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "@/components/ai-elements/reasoning";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
 import { useFinance } from "@/components/finance/use-finance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +22,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { money } from "@/lib/finance";
+
+const API_URL = import.meta.env["VITE_API_URL"] || "http://localhost:3000";
+
+async function authedFetch(path: string, options: RequestInit = {}) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+const LOG_MARKER = /LOG_TRANSACTION:\s*(\{.*\})\s*$/s;
+
+type LogPayload = { itemName: string; amount: number; spentOn: string; categoryName: string };
 
 export const Route = createFileRoute("/_authenticated/tracker")({
   component: Tracker,
@@ -47,11 +56,12 @@ export const Route = createFileRoute("/_authenticated/tracker")({
 
 type Transaction = Tables<"transactions">;
 type EditableTransaction = Pick<Transaction, "item_name" | "merchant" | "amount" | "spent_on" | "category_id">;
+type AssistantMessage = { id: string; role: "user" | "assistant"; text: string; logged?: LogPayload };
 
-const greeting: UIMessage = {
+const greeting: AssistantMessage = {
   id: "tracker-welcome",
   role: "assistant",
-  parts: [{ type: "text", text: "What did you buy? You can tell me everything at once, or we can take it one detail at a time." }],
+  text: "What did you buy? You can tell me everything at once, or we can take it one detail at a time.",
 };
 
 function Tracker() {
@@ -62,26 +72,72 @@ function Tracker() {
   const [rowError, setRowError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: "/api/tracker-assistant",
-        fetch: async (input, init) => {
-          const { data } = await supabase.auth.getSession();
-          const headers = new Headers(init?.headers);
-          if (data.session) headers.set("Authorization", `Bearer ${data.session.access_token}`);
-          return fetch(input, { ...init, headers });
-        },
-      }),
-    [],
-  );
+  const [messages, setMessages] = useState<AssistantMessage[]>([greeting]);
+  const [sending, setSending] = useState(false);
+  const [assistantError, setAssistantError] = useState<string | null>(null);
 
-  const { messages, sendMessage, status, stop, error } = useChat({
-    id: "spending-tracker-assistant",
-    messages: [greeting],
-    transport,
-    onFinish: () => void reload(),
-  });
+  const sendMessage = async ({ text }: { text: string }) => {
+    if (!text.trim()) return;
+    setAssistantError(null);
+    const history = [...messages, { id: crypto.randomUUID(), role: "user" as const, text: text.trim() }];
+    setMessages(history);
+    setSending(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const transcript = history.map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.text}`).join("\n");
+      const prompt = [
+        "You are the friendly spending-log assistant inside Buy or Bye.",
+        "Help the user record one purchase by asking one short question at a time.",
+        "Collect the item, amount, purchase date, and one category before summarizing the entry.",
+        `Today is ${today}. Available categories: ${categories.map((c) => c.name).join(", ")}.`,
+        "If the user gives several details at once, acknowledge them and ask only for the next missing detail.",
+        "After all details are known, show a concise summary and explicitly ask the user to confirm.",
+        "Only once the user clearly confirms (e.g. yes, confirm, looks good), reply with a short confirmation sentence, then on its own final line output exactly this, filled in with the real values and nothing else after it:",
+        `LOG_TRANSACTION: {"itemName": "...", "amount": 0, "spentOn": "YYYY-MM-DD", "categoryName": "..."}`,
+        "Never invent an amount, date, category, or item, and never output that line before the user has confirmed.",
+        "",
+        "Conversation so far:",
+        transcript,
+      ].join("\n");
+
+      const result = await authedFetch("/chat", { method: "POST", body: JSON.stringify({ message: prompt }) });
+      const reply = String(result.reply ?? "").trim();
+      const match = LOG_MARKER.exec(reply);
+      let logged: LogPayload | undefined;
+      let displayText = reply;
+
+      if (match) {
+        displayText = reply.slice(0, match.index).trim();
+        try {
+          const payload = JSON.parse(match[1]) as LogPayload;
+          const category = categories.find((c) => c.name.toLowerCase() === payload.categoryName.trim().toLowerCase());
+          if (category && payload.itemName && payload.amount > 0 && /^\d{4}-\d{2}-\d{2}$/.test(payload.spentOn)) {
+            const { error: insertError } = await supabase.from("transactions").insert({
+              user_id: (await supabase.auth.getUser()).data.user?.id,
+              category_id: category.id,
+              item_name: payload.itemName.trim(),
+              amount: payload.amount,
+              spent_on: payload.spentOn,
+            });
+            if (!insertError) {
+              logged = payload;
+              void reload();
+            }
+          }
+        } catch (err) {
+          console.error("[tracker-assistant] failed to parse log payload", err);
+        }
+      }
+
+      setMessages([...history, { id: crypto.randomUUID(), role: "assistant", text: displayText || "Got it.", logged }]);
+    } catch (err) {
+      console.error("[tracker-assistant] chat error", err);
+      const message = err instanceof Error ? err.message : String(err);
+      setAssistantError(/429|rate limit/i.test(message) ? "The assistant needs a short pause. Please try again soon." : "I couldn't continue that entry. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   const beginEdit = (transaction: Transaction) => {
     setRowError(null);
@@ -147,37 +203,18 @@ function Tracker() {
               {messages.map((message) => (
                 <Message key={message.id} from={message.role}>
                   <MessageContent className={message.role === "assistant" ? "rounded-2xl bg-white/70 px-4 py-3 shadow-sm" : undefined}>
-                    {message.parts.map((part, index) => {
-                      if (part.type === "text") return <MessageResponse key={index}>{part.text}</MessageResponse>;
-                      if (part.type === "reasoning") {
-                        return (
-                          <Reasoning key={index} isStreaming={status === "streaming" && message.id === messages.at(-1)?.id}>
-                            <ReasoningTrigger />
-                            <ReasoningContent>{part.text}</ReasoningContent>
-                          </Reasoning>
-                        );
-                      }
-                      if (isToolUIPart(part)) {
-                        return (
-                          <Tool key={index} defaultOpen={part.state === "output-error"}>
-                            <ToolHeader type={part.type as never} state={part.state} toolName={part.type === "dynamic-tool" ? getToolName(part) : undefined as never} title="Adding purchase to your sheet" />
-                            <ToolContent>
-                              <ToolInput input={part.input} />
-                              <ToolOutput output={"output" in part ? part.output : undefined} errorText={"errorText" in part ? part.errorText : undefined} />
-                            </ToolContent>
-                          </Tool>
-                        );
-                      }
-                      return null;
-                    })}
+                    <MessageResponse>{message.text}</MessageResponse>
+                    {message.logged && (
+                      <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-primary">
+                        <Check className="size-3.5" />Logged: {message.logged.itemName} · {money(message.logged.amount)} · {message.logged.categoryName}
+                      </p>
+                    )}
                   </MessageContent>
                 </Message>
               ))}
-              {status === "submitted" && <Shimmer className="text-sm">Checking the details…</Shimmer>}
-              {error && (
-                <p className="rounded-2xl bg-destructive/10 p-3 text-sm text-destructive">
-                  {error.message.includes("429") ? "The assistant needs a short pause. Please try again soon." : "I couldn&apos;t continue that entry. Please try again."}
-                </p>
+              {sending && <Shimmer className="text-sm">Checking the details…</Shimmer>}
+              {assistantError && (
+                <p className="rounded-2xl bg-destructive/10 p-3 text-sm text-destructive">{assistantError}</p>
               )}
             </ConversationContent>
             <ConversationScrollButton />
@@ -192,7 +229,7 @@ function Tracker() {
               <PromptInputBody><PromptInputTextarea placeholder="Tell me what you bought…" /></PromptInputBody>
               <PromptInputFooter>
                 <span className="px-2 text-xs text-muted-foreground">Nothing is saved until you confirm.</span>
-                <PromptInputSubmit status={status} onStop={stop} />
+                <PromptInputSubmit status={sending ? "submitted" : "ready"} />
               </PromptInputFooter>
             </PromptInput>
           </div>

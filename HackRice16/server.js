@@ -29,7 +29,7 @@ app.use('/purchase', purchaseRoutes);
 app.use('/tracker', trackerRoutes);
 
 // Routes that call Gemini or Backboard, limited per user per day
-app.use('/chat', rateLimit(15), chatRoutes);
+app.use('/chat', supabaseAuth, rateLimit(15), chatRoutes);
 // classify is called from the signed-in Decide screen, so it checks the
 // Supabase token first, which also gives rateLimit a real user id to key on
 app.use('/classify', supabaseAuth, rateLimit(15), classifyRoutes);
