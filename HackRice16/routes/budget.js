@@ -4,7 +4,7 @@ const { getAIReply } = require('../services/aiRouter');
 
 router.post('/ask', async (req, res) => {
   try {
-    const { category, userMessage, userId } = req.body;
+    const { category, userMessage } = req.body;
 
     const prompt = `
       You are helping a user set a monthly budget for the category "${category}".
@@ -13,7 +13,7 @@ router.post('/ask', async (req, res) => {
       Their last message was: "${userMessage || ''}"
     `;
 
-    const result = await getAIReply(prompt, { userId: userId || 'anonymous' });
+    const result = await getAIReply(prompt, { userId: req.userId || 'anonymous' });
     res.json({ reply: result.reply, source: result.source });
   } catch (err) {
     console.error(err);

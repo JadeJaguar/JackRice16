@@ -1,11 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CircleDollarSign } from "lucide-react";
+import { ArrowRight, CircleDollarSign, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { useFinance } from "@/components/finance/use-finance";
 import { supabase } from "@/integrations/supabase/client";
-import { money } from "@/lib/finance";
+import { DEFAULT_CATEGORIES, money } from "@/lib/finance";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+const API_URL = import.meta.env["VITE_API_URL"] || "http://localhost:3000";
+
+async function authedFetch(path: string, options: RequestInit = {}) {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
 
 export const Route = createFileRoute("/_authenticated/budget")({
   component: BudgetPage,
@@ -20,7 +33,82 @@ export const Route = createFileRoute("/_authenticated/budget")({
     ],
   }),
 });
-function BudgetPage() { const { budget,categories,reload,loading }=useFinance(); const [saving,setSaving]=useState(false); const total=categories.reduce((s,c)=>s+Number(c.target_amount),0);
+function BudgetPage() { const { budget,categories,reload,loading,createBudget }=useFinance();
+ if (loading) return <div className="glass-card h-72 animate-pulse" />;
+ if (!budget) return <BudgetSetup onDone={createBudget} />;
+ return <BudgetGrid categories={categories} budget={budget} reload={reload} loading={loading} />;
+}
+
+function BudgetSetup({ onDone }: { onDone: (amounts: { name: string; icon: string; description: string; examples: string[]; amount: number }[]) => Promise<void> }) {
+  const [step, setStep] = useState(0);
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(true);
+  const [answer, setAnswer] = useState("");
+  const [amounts, setAmounts] = useState<number[]>([]);
+  const [finishing, setFinishing] = useState(false);
+  const category = DEFAULT_CATEGORIES[step];
+
+  useEffect(() => {
+    let cancelled = false;
+    setAsking(true);
+    authedFetch("/budget/ask", {
+      method: "POST",
+      body: JSON.stringify({ category: category.name }),
+    })
+      .then((res) => { if (!cancelled) setQuestion(res.reply); })
+      .catch(() => { if (!cancelled) setQuestion(`About how much do you usually spend on ${category.name.toLowerCase()} each month?`); })
+      .finally(() => { if (!cancelled) setAsking(false); });
+    return () => { cancelled = true; };
+  }, [step]);
+
+  const submit = async () => {
+    const value = Number(answer) || 0;
+    const next = [...amounts, value];
+    setAmounts(next);
+    setAnswer("");
+    if (step + 1 < DEFAULT_CATEGORIES.length) {
+      setStep(step + 1);
+    } else {
+      setFinishing(true);
+      await onDone(DEFAULT_CATEGORIES.map((c, i) => ({ name: c.name, icon: c.icon, description: c.description, examples: [...c.examples], amount: next[i] })));
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-7">
+      <div>
+        <p className="eyebrow">Monthly budget</p>
+        <h1 className="mt-2 text-4xl font-bold">Let's shape your first plan.</h1>
+        <p className="mt-3 text-lg text-muted-foreground/90">A few quick questions, one category at a time. You can always adjust these later.</p>
+      </div>
+      <div className="glass-card space-y-5 p-6 sm:p-8">
+        <p className="eyebrow">Category {step + 1} of {DEFAULT_CATEGORIES.length} · {category.name}</p>
+        {finishing ? (
+          <p className="flex items-center gap-2 text-lg"><Sparkles className="animate-pulse text-primary size-5" />Putting your plan together…</p>
+        ) : (
+          <>
+            <p className="text-lg font-semibold">{asking ? "Thinking of a good question…" : question}</p>
+            <p className="text-sm text-muted-foreground">For example: {category.examples.join(", ")}</p>
+            <Input
+              className="rounded-full bg-white"
+              type="number"
+              placeholder="0"
+              value={answer}
+              disabled={asking}
+              onChange={(e) => setAnswer(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !asking) void submit(); }}
+            />
+            <Button size="lg" onClick={() => void submit()} disabled={asking}>
+              {step + 1 < DEFAULT_CATEGORIES.length ? "Next" : "Finish"} <ArrowRight />
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BudgetGrid({ categories, budget, reload, loading }: { categories: ReturnType<typeof useFinance>["categories"]; budget: NonNullable<ReturnType<typeof useFinance>["budget"]>; reload: () => Promise<void>; loading: boolean }) { const [saving,setSaving]=useState(false); const total=categories.reduce((s,c)=>s+Number(c.target_amount),0);
  const categoryRowRef=useRef<HTMLDivElement>(null); const scrollFrameRef=useRef<number | null>(null); const scrollSpeedRef=useRef(0);
  useEffect(()=>()=>{if(scrollFrameRef.current!==null) window.cancelAnimationFrame(scrollFrameRef.current)},[]);
  const stopEdgeScroll=()=>{scrollSpeedRef.current=0;if(scrollFrameRef.current!==null){window.cancelAnimationFrame(scrollFrameRef.current);scrollFrameRef.current=null}};
