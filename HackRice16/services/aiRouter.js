@@ -7,10 +7,12 @@ async function getAIReply(promptText, { userId, threadId } = {}) {
     return { reply: result, source: 'gemini', threadId };
   } catch (err) {
     const isTimeout = err.code === 'ECONNABORTED';
-    const isQuotaError =
-      err.response?.status === 429 || err.response?.status === 403;
+    // Any HTTP error response from Gemini (bad/expired key, quota, model
+    // not found, etc.) should fall back too, not just quota errors, so a
+    // broken Gemini key doesn't take the whole feature down mid-demo.
+    const isGeminiHttpError = !!err.response?.status;
 
-    if (isTimeout || isQuotaError) {
+    if (isTimeout || isGeminiHttpError) {
       console.log('Gemini failed, falling back to Backboard:', err.message);
 
       const result = await sendMessage({
