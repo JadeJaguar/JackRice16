@@ -1,21 +1,21 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Heart, LayoutDashboard, LogOut, MessageCircle, ReceiptText, Sparkles, WalletCards } from "lucide-react";
+import { BarChart3, Heart, LayoutDashboard, LogOut, MessageCircle, ReceiptText, WalletCards } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
+import { CustomCursor } from "@/components/finance/custom-cursor";
 import { PointerBackground } from "@/components/finance/pointer-background";
 import { motion } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
 
 const links = [
   { to: "/app", label: "Overview", icon: LayoutDashboard },
-  { to: "/decide", label: "Buy or Bye", icon: Sparkles },
   { to: "/budget", label: "Monthly budget", icon: WalletCards },
   { to: "/tracker", label: "Expenses Tracker", icon: ReceiptText },
   { to: "/purchase-pal", label: "Purchase Pal", icon: MessageCircle },
 ] as const;
 
-const FADE_ONLY_PATHS = ["/budget", "/tracker", "/purchase-pal", "/decide"];
+const FADE_ONLY_PATHS = ["/budget", "/tracker", "/purchase-pal"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -30,7 +30,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
   return (
-    <div className="relative isolate min-h-screen overflow-hidden bg-background text-foreground">
+    <div className="relative isolate min-h-screen cursor-none overflow-hidden bg-background text-foreground">
+      <CustomCursor />
       <PointerBackground />
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-18 max-w-[1500px] items-center gap-3 px-4 sm:px-6">
