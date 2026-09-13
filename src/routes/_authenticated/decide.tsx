@@ -99,6 +99,7 @@ function DecidePage() {
   };
 
   const decide = async (decision: "bought" | "not needed yet") => {
+    setError(null);
     try {
       await authedFetch("/purchase", {
         method: "POST",
@@ -110,7 +111,23 @@ function DecidePage() {
           alternatives: results,
         }),
       });
-      if (decision === "bought") await reload();
+      if (decision === "bought") {
+        // Tiger Data holds the full decision (alternatives, nudge context).
+        // Also mirror it into Supabase transactions so it shows up in the
+        // budget-remaining figure and the Expenses Tracker like any other
+        // logged spend.
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          const { error: txError } = await supabase.from("transactions").insert({
+            user_id: userData.user.id,
+            category_id: matchedCategory?.id ?? null,
+            item_name: itemDescription,
+            amount: price ? Number(price) : 0,
+          });
+          if (txError) console.error(txError);
+        }
+        await reload();
+      }
       setStep("saved");
     } catch (err) {
       console.error(err);
